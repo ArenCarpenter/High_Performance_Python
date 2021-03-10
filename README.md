@@ -44,3 +44,58 @@ p = pstats.Stats("profile.stats")
 p.sort_stats("cumulative")
 p.print_stats() # returns same message as above
 ```
+
+## Line Profiling with KernProf line_profiler
+
+Start by installing the library.
+```commandline
+conda install line_profiler
+```
+
+Then we can copy our julia1 script and replace the wrapper on our `calculate_z_serial_purepython`
+function with `@profile`. This marks that function for line by line profiling with kernprof.
+
+```commandline
+kernprof -l -v julia1_lineprofiler.py
+```
+
+* `-l`: line-by-line profiling (instead of function profiling)
+* `-v`: verbose output
+
+```commandline
+calculate_z_serial_purepythontook  71.19181418418884  seconds
+Wrote profile results to julia1_lineprofiler.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 41.5809 s
+File: julia1_lineprofiler.py
+Function: calculate_z_serial_purepython at line 55
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    55                                           @profile
+    56                                           def calculate_z_serial_purepython(maxiter, zs, cs):
+    57                                               """Calculate output list using Julia update rule"""
+    58         1       2982.0   2982.0      0.0      output = [0] * len(zs)
+    59   1000001     327470.0      0.3      0.8      for i in range(len(zs)):
+    60   1000000     304128.0      0.3      0.7          n = 0
+    61   1000000     361864.0      0.4      0.9          z = zs[i]
+    62   1000000     339941.0      0.3      0.8          c = cs[i]
+    63  34219980   15898113.0      0.5     38.2          while abs(z) < 2 and n < maxiter:
+    64  33219980   12658413.0      0.4     30.4              z = z * z + c
+    65  33219980   11338599.0      0.3     27.3              n += 1
+    66   1000000     349394.0      0.3      0.8          output[i] = n
+    67         1          0.0      0.0      0.0      return output
+```
+You can see that line-by-line profiling adds a significant overhead to the function. Run time increased to 
+71 seconds using line profiling compared to 10 seconds with cProfile. However, we now have access to more 
+information about what calls in our function are taking the most time.
+
+What's causing this heavy resource usage in our function? We see that our `while` operation and comparisons
+are slow, and because Python is dynamically typed, even simple `*` and `+` operations requires checking for
+`__add__` methods to handle our data. 
+
+One way of possibly speeding up the `while` statement is to swap the order of our multiple conditions because
+Python evaluates conditionals left to right and opportunistically. This means that if the first statement 
+fails, the second statement will not be evaluated. Thus one should put more frequently failing tests first. 
+However, swapping these and rerunning the profiling shows only a modest gain in speed. 
