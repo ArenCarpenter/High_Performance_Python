@@ -145,4 +145,10 @@ So we see that 7.6 MB was allocated for our output list on line 58.
 
 We can also visualize the memory usage throughout the function running. 
 
+```commandline
+mprof run julia1_memoryprofiler.py
+
+mprof plot mprofile_20210311162827.dat
+```
+
 ![](Images/Figure_1.png)
