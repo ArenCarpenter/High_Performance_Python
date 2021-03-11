@@ -99,3 +99,50 @@ One way of possibly speeding up the `while` statement is to swap the order of ou
 Python evaluates conditionals left to right and opportunistically. This means that if the first statement 
 fails, the second statement will not be evaluated. Thus one should put more frequently failing tests first. 
 However, swapping these and rerunning the profiling shows only a modest gain in speed. 
+
+## Memory Profiling with memory_profiler
+
+There are many resources that we need to optimize in our code. In addition to speed, we need to be mindful of
+memory usage. 
+
+```commandline
+conda install memory_profiler
+```
+
+Using the same `@profile` decorator as our line profiler, we can analyze our targeted function line-by-line
+for its memory usage. 
+
+```commandline
+python -m memory_profiler julia1_memoryprofiler.py
+```
+We then get the following readout. Note that this process is more time intensive than the time profiling
+and you can expect a much longer runtime. (It took my MacBook Pro with a QuadCore i5 and 16 GB RAM about an 
+hour)
+
+```commandline
+Length of x: 1000
+Total elements: 1000000
+calculate_z_serial_purepythontook  3075.8688037395477  seconds
+Filename: julia1_memoryprofiler.py
+
+Line #    Mem usage    Increment  Occurences   Line Contents
+============================================================
+    55  124.297 MiB  124.297 MiB           1   @profile # uses memory_profiler to profile function by line
+    56                                         def calculate_z_serial_purepython(maxiter, zs, cs):
+    57                                             """Calculate output list using Julia update rule"""
+    58  131.934 MiB    7.637 MiB           1       output = [0] * len(zs)
+    59  148.902 MiB -19918.102 MiB     1000001       for i in range(len(zs)):
+    60  148.902 MiB -19918.102 MiB     1000000           n = 0
+    61  148.902 MiB -19910.730 MiB     1000000           z = zs[i]
+    62  148.902 MiB -19910.395 MiB     1000000           c = cs[i]
+    63  148.902 MiB -971121.309 MiB    34219980           while abs(z) < 2 and n < maxiter:
+    64  148.902 MiB -951206.105 MiB    33219980               z = z * z + c
+    65  148.902 MiB -951206.105 MiB    33219980               n += 1
+    66  148.902 MiB -19918.102 MiB     1000000           output[i] = n
+    67  148.902 MiB    0.000 MiB           1       return output
+```
+So we see that 7.6 MB was allocated for our output list on line 58.
+
+We can also visualize the memory usage throughout the function running. 
+
+![](Images/Figure_1.png)
