@@ -152,3 +152,44 @@ mprof plot mprofile_20210311162827.dat
 ```
 
 ![](Images/Figure_1.png)
+
+## Python containers
+
+### List
+Lists are ordered, mutable, and can contain multiple data types and duplicates. Elements are indexed from 0. 
+Lists can be sliced to access specific elements, where the first value is included and the second is excluded.
+```python
+new_list = ['value', 5, my_function]
+
+first_element = new_list[0]
+
+first_two_elements = new_list[:2] # selects zeroth and first element
+```
+
+### Tuple
+Tuples are similar to lists in that they are indexed and support multiple data types. Tuples are immutable and
+can be unpacked into multiple variables. Tuples can be sliced in the same way as lists.
+```python
+new_tuple = ('value', 5, my_function)
+
+# Unpacking
+first, second, third = new_tuple
+```
+
+### Dictionary
+Dictionaries are unordered collections that store key:value pairs which allows for faster lookups taking
+advantage of hash tables. Values support multiple data types and duplicates, but keys must be unique and 
+immutable.
+```python
+new_dict = {'key': 'value'}
+```
+
+### Set
+Sets are unordered and immutable. Think of them as storing unique keys, unlike lists which can contain 
+duplicates. It is optimized for checking if a specific element is contained in the set without a full O(n)
+lookup using hash tables, like dictionaries.  
+```python
+new_set = {'key1', 'key2'}
+```
+
+### Generator 
