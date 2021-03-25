@@ -192,4 +192,4 @@ lookup using hash tables, like dictionaries.
 new_set = {'key1', 'key2'}
 ```
 
-### Generator 
+## Matrix and Vector Vectorization
